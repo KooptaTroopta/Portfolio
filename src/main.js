@@ -3,12 +3,40 @@ import './style.scss'
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import gsap from "gsap"
 
 const canvas = document.querySelector("#experience-canvas");
 const sizes = {
   width: window.innerWidth,
   height: window.innerHeight
 }
+
+const modals = {
+  portfolio: document.querySelector(".modal.portfolio"),
+};
+
+document.querySelectorAll(".modal-exit-button").forEach((button)=>{
+  button.addEventListener("click",(e)=>{
+    const modal = e.target.closest(".modal");
+    hideModal(modal);
+  });
+});
+
+const showModal = (modal)=> {
+  modal.style.display = "block";
+  gsap.set(modal, {opacity: 0});
+  gsap.to(modal,{opacity:1,duration:0.5,});
+};
+
+const hideModal = (modal)=> {
+  gsap.to(modal,{
+    opacity:0,
+    duration:0.5,
+    onComplete: () => {
+      modal.style.display = "none";
+    }
+  });
+};
 
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera( 45, sizes.width / sizes.height, 0.1, 1000 );
@@ -52,6 +80,10 @@ const textureMap = {
   Third: {
     day:"/textures/room/day/TextureSetThreeDay.webp",
     night:"/textures/room/night/TextureSetThreeNight.webp",
+  },
+  Fourth: {
+    day:"/textures/room/day/TextureSetFourDay.webp",
+    night:"/textures/room/night/TextureSetFourNight.webp",
   }
 };
 
@@ -72,13 +104,30 @@ Object.entries(textureMap).forEach(([key, paths])=> {
   loadedTextures.night[key] = nightTexture;
 });
 
+const links = {
+  Github: "https://github.com/KooptaTroopta",
+  LinkedIn: "https://linkedin.com/in/jacob-yen",
+  Linkedin: "https://linkedin.com/in/jacob-yen",
+}
+
 const glassMaterial = new THREE.MeshPhysicalMaterial({
   color: 0xffffff,
   transparent: true,
-  opacity: 0.25,
+  opacity: 0.1,
   roughness: 0,
   ior: 1,
   thickness: 0.01,
+  specularIntensity: 1,
+  specularColor: 0xffffff,
+  envMap: environmentMap,
+});
+
+const metalMaterial = new THREE.MeshPhysicalMaterial({
+  color: 0x0f0f0f,
+  transparent: false,
+  opacity: 1,
+  roughness: 0,
+  ior: 1,
   specularIntensity: 1,
   specularColor: 0xffffff,
   envMap: environmentMap,
@@ -103,15 +152,25 @@ videoTexture.repeat.set(0.9, 0.9);
 // Offset: moves the video, range 0-1
 videoTexture.offset.set(0, 0);
 
+const fans = [];
+
+const raycasterObjects = [];
+let currentIntersects = [];
+
+const raycaster = new THREE.Raycaster();
+const pointer = new THREE.Vector2();
+
 loader.load("/models/RoomPortfolio.glb", (glb)=>{ 
   glb.scene.traverse(child=>{
     if(child.isMesh) {
+      if (child.name.includes("Raycaster")) {
+        raycasterObjects.push(child);
+      }
+
       if (child.name.includes("Glass") || child.name.includes("Plate")) {
         child.material = glassMaterial;
-      } else if (child.name == "Monitor_Screen") {
-        child.material = new THREE.MeshBasicMaterial({
-          map: videoTexture,
-        });
+      } else if (child.name.includes( "Metal")) {
+        child.material = metalMaterial;
       } else if (child.name == "Laptop_Screen") {
         child.material = new THREE.MeshBasicMaterial({
           map: videoTexture,
@@ -123,6 +182,11 @@ loader.load("/models/RoomPortfolio.glb", (glb)=>{
               map: loadedTextures.night[key],
             });
             child.material = material;
+
+            if (child.name.includes("Fan_First")){
+              fans.push(child);
+            }
+
             if (child.material.map) {
               child.material.map.minFilter = THREE.LinearFilter;
             }
@@ -148,12 +212,61 @@ window.addEventListener("resize", ()=> {
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 })
 
+window.addEventListener("mousemove", (e)=>{
+  pointer.x = (e.clientX / window.innerWidth) * 2 - 1;
+  pointer.y = -(e.clientY / window.innerHeight) * 2 + 1;
+})
+
+window.addEventListener("click", (e)=>{
+  if (currentIntersects.length > 0) {
+    const object = currentIntersects[0].object;
+    Object.entries(links).forEach(([key, url]) => {
+      if (object.name.includes(key)) {
+        const newWindow = window.open();
+        newWindow.opener = null;
+        newWindow.location = url;
+        newWindow.target = "_blank";
+        newWindow.rel = "noopener noreferrer";
+      }
+    });
+
+    if (object.name.includes("Monitor_Screen")) {
+      showModal(modals.portfolio);
+    }
+  }
+})
+
 const render = () => {
   controls.update();
 
   // console.log(camera.position);
   //  console.log("Blud");
   //  console.log(controls.target);
+
+  // Animate fans
+  fans.forEach((fan)=>{
+    fan.rotation.z += 0.02;
+  });
+  
+  // Raycaster
+  raycaster.setFromCamera(pointer, camera);
+
+  currentIntersects = raycaster.intersectObjects(raycasterObjects);
+
+  for (let i = 0; i < currentIntersects.length; i++) {
+  }
+
+  if (currentIntersects.length > 0) {
+    const currentIntersectObject = currentIntersects[0].object;
+    if (currentIntersectObject.name.includes("Raycaster")) {
+      document.body.style.cursor = "pointer";
+    } else {
+      document.body.style.cursor = "default";
+    }
+  } else {
+    document.body.style.cursor = "default";
+  }
+
   renderer.render( scene, camera );
 
   window.requestAnimationFrame(render);
