@@ -160,6 +160,8 @@ let currentIntersects = [];
 const raycaster = new THREE.Raycaster();
 const pointer = new THREE.Vector2();
 
+const timeObjects = [];
+
 loader.load("/models/RoomPortfolio.glb", (glb)=>{ 
   glb.scene.traverse(child=>{
     if(child.isMesh) {
@@ -179,9 +181,10 @@ loader.load("/models/RoomPortfolio.glb", (glb)=>{
         Object.keys(textureMap).forEach(key=>{
           if(child.name.includes(key)) {
             const material = new THREE.MeshBasicMaterial({
-              map: loadedTextures.night[key],
+              map: loadedTextures.day[key],
             });
             child.material = material;
+            timeObjects.push({mesh: child, key});
 
             if (child.name.includes("Fan_First")){
               fans.push(child);
@@ -197,6 +200,14 @@ loader.load("/models/RoomPortfolio.glb", (glb)=>{
   });
   scene.add(glb.scene);
 });
+
+const setTime = () => {
+  const mode = time === 1 ? "day" : "night";
+  timeObjects.forEach(({ mesh, key }) => {
+    mesh.material.map = loadedTextures[mode][key];
+    mesh.material.needsUpdate = true;
+  });
+};
 
 // Event Listeners
 window.addEventListener("resize", ()=> {
@@ -216,7 +227,7 @@ window.addEventListener("mousemove", (e)=>{
   pointer.x = (e.clientX / window.innerWidth) * 2 - 1;
   pointer.y = -(e.clientY / window.innerHeight) * 2 + 1;
 })
-
+let time = 1;
 window.addEventListener("click", (e)=>{
   if (currentIntersects.length > 0) {
     const object = currentIntersects[0].object;
@@ -233,6 +244,10 @@ window.addEventListener("click", (e)=>{
     if (object.name.includes("Monitor_Screen")) {
       showModal(modals.portfolio);
     }
+    if (object.name.includes("Boba")) {
+      time *= -1;
+      setTime();
+    }
   }
 })
 
@@ -242,7 +257,7 @@ const render = () => {
   // console.log(camera.position);
   //  console.log("Blud");
   //  console.log(controls.target);
-
+  console.log(time);
   // Animate fans
   fans.forEach((fan)=>{
     fan.rotation.z += 0.02;
