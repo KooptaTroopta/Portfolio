@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import './style.scss'
-import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { OrbitControls } from './utils/OrbitControls.js';
 import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import gsap from "gsap"
@@ -31,13 +31,35 @@ document.querySelectorAll(".modal-exit-button").forEach((button) => {
   }, {passive: false});
 });
 
+let modalOpen = false;
+let currentModal = null;
 const showModal = (modal) => {
-  modal.style.display = "block";
+  if (currentModal && currentModal !== modal) return;
+  currentModal = modal;
+  modalOpen = true;
+  controls.enabled = false;
+  document.body.style.cursor = "default";
+  if (currentHovered) {
+    const prevKey = currentHovered.name.includes("GitHub") ? "GitHub"
+    : currentHovered.name.includes("LinkedIn") ? "LinkedIn"
+    : null;
+    hoverAnimation(prevKey ? hoverGroups[prevKey] : [currentHovered], false);
+    currentHovered = null;
+  }
+  currentIntersects = [];
+  modal.style.display = "flex";
   gsap.set(modal, { opacity: 0 });
   gsap.to(modal, { opacity: 1, duration: 0.5, });
 };
 
 const hideModal = (modal) => {
+  currentModal = null;
+  modalOpen = false;
+  controls.enabled = true;
+  if (modal == modals.portfolio) {
+    camera.position.copy(currentCameraPos);
+    controls.target.copy(currentTargetPos);
+  }
   gsap.to(modal, {
     opacity: 0,
     duration: 0.5,
@@ -47,6 +69,19 @@ const hideModal = (modal) => {
   });
 };
 
+document.querySelectorAll(".project-card").forEach((card) => {
+  card.addEventListener("click", (e) => {
+    if (e.target.closest(".project-github-link")) return;
+
+    const isExpanded = card.classList.contains("is-expanded");
+
+    document.querySelectorAll(".project-card.is-expanded").forEach((open) => {
+      if (open !== card) open.classList.remove("is-expanded");
+    });
+    card.classList.toggle("is-expanded", !isExpanded);
+  });
+});
+
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(45, sizes.width / sizes.height, 0.1, 1000);
 
@@ -54,22 +89,96 @@ const renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true });
 renderer.setSize(sizes.width, sizes.height);
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
-camera.position.set(28.077387785828126, 21.950782007930037, -28.256596388952136);
-
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
 controls.dampingFactor = 0.05;
-controls.target.set(-1.8116896998071725, 4.772175024448581, 1.6579637735594335);
+controls.minPolarAngle = 0;
+controls.maxPolarAngle = Math.PI/2;
+controls.minAzimuthAngle = Math.PI/2;
+controls.maxAzimuthAngle = Math.PI;
+
+const currentCameraPos = new THREE.Vector3(28.077387785828126, 21.950782007930037, -28.256596388952136);
+const currentTargetPos = new THREE.Vector3(-1.8116896998071725, 4.772175024448581, 1.6579637735594335);
+
+camera.position.copy(currentCameraPos);
+controls.target.copy(currentTargetPos);
+
+if (window.innerWidth < 768) {
+  controls.minDistance = 0;
+  controls.maxDistance = 75;
+} else {
+  controls.minDistance = 0;
+  controls.maxDistance = 50;
+}
+
 controls.update();
 
 // Loaders
+const manager = new THREE.LoadingManager();
+const loadingScreen = document.querySelector(".loading-screen");
+const loaderFill = document.querySelector(".loader-bar-fill");
+const loaderPercent = document.querySelector(".loader-percent");
+
+manager.onProgress = (url, loaded, total) => {
+    const pct = Math.round((loaded / total) * 100);
+    loaderFill.style.width = `${pct}%`;
+    loaderPercent.textContent = `${pct}%`;
+};
+manager.onLoad = () => {
+  loaderFill.style.width = "100%";
+  loaderPercent.textContent = "100%";
+  const tl = gsap.timeline();
+  tl.to(loadingScreen, {
+    opacity: 0,
+    delay: 0.5,
+    onComplete: () => {
+      loadingScreen.remove();
+    },
+  });
+};
 const textureLoader = new THREE.TextureLoader();
+
+const introOverlay = document.getElementById("intro");
+const mainNav = document.getElementById("main-nav");
+const enterButton = document.querySelector(".intro-enter-button");
+let time = 1;
+
+const enterSite = () => {
+  gsap.to(introOverlay, {
+    opacity: 0,
+    duration: 0.6,
+    onComplete: () => {
+      introOverlay.classList.add("is-hidden");
+      mainNav.classList.add("is-visible");
+      playIntro();
+    },
+  });
+};
+
+enterButton.addEventListener("click", enterSite);
+
+document.getElementById("nav-home").addEventListener("click", () => {
+  introOverlay.classList.remove("is-hidden");
+  gsap.fromTo(introOverlay, { opacity: 0 }, { opacity: 1, duration: 0.4 });
+});
+
+document.getElementById("nav-nightmode").addEventListener("click", () => {
+  time *= -1;
+  setTime();
+  mainNav.classList.toggle("is-night", time === -1);
+  document.getElementById("nav-nightmode").classList.toggle("is-active", newTime === -1);
+});
+
+document.getElementById("nav-portfolio").addEventListener("click", () => showModal(modals.portfolio));
+document.getElementById("nav-about").addEventListener("click", () => showModal(modals.about));
+document.getElementById("nav-contact").addEventListener("click", () => showModal(modals.contact));
+
 
 // Model Loaders
 const dracoLoader = new DRACOLoader();
 dracoLoader.setDecoderPath('/draco/');
 
-const loader = new GLTFLoader();
+const loader = new GLTFLoader(manager);
 loader.setDRACOLoader(dracoLoader);
 
 const environmentMap = new THREE.CubeTextureLoader()
@@ -114,7 +223,7 @@ Object.entries(textureMap).forEach(([key, paths]) => {
 });
 
 const links = {
-  Github: "https://github.com/KooptaTroopta",
+  GitHub: "https://github.com/KooptaTroopta",
   LinkedIn: "https://linkedin.com/in/jacob-yen",
 }
 
@@ -141,8 +250,34 @@ const metalMaterial = new THREE.MeshPhysicalMaterial({
   envMap: environmentMap,
 });
 
+const projectImages = [
+  "/images/Inferno.webp",
+  "/images/social-graph.webp",
+  "/images/truss-simulation.webp",
+  "/images/dispenser.webp",
+  "/images/portfolio-day.webp",
+];
+
+const randomSrc = projectImages[Math.floor(Math.random() * projectImages.length)];
+
+const monitorImage = new Image();
+monitorImage.src = randomSrc;
+
+const monitorTexture = new THREE.Texture(monitorImage);
+monitorTexture.colorSpace = THREE.SRGBColorSpace;
+monitorTexture.flipY = false;
+monitorTexture.wrapS = THREE.ClampToEdgeWrapping;
+monitorTexture.wrapT = THREE.ClampToEdgeWrapping;
+
+monitorTexture.repeat.set(0.9, 2);
+monitorTexture.offset.set(0.05, -0.45);
+
+monitorImage.onload = () => {
+  monitorTexture.needsUpdate = true;
+};
+
 const videoElement = document.createElement("video");
-videoElement.src = "/textures/video/Laptop.mp4";
+videoElement.src = "/textures/video/Laptop1.mp4";
 videoElement.loop = true;
 videoElement.muted = true;
 videoElement.autoplay = true;
@@ -154,11 +289,8 @@ videoTexture.flipY = false;
 videoTexture.wrapS = THREE.ClampToEdgeWrapping;
 videoTexture.wrapT = THREE.ClampToEdgeWrapping;
 
-// Scale: higher = more zoomed out, lower = more zoomed in
-videoTexture.repeat.set(0.9, 0.9);
-
-// Offset: moves the video, range 0-1
-videoTexture.offset.set(0, 0);
+videoTexture.repeat.set(1.3, 1.6);
+videoTexture.offset.set(-0.0, -0.5);
 
 const fans = [];
 
@@ -173,14 +305,21 @@ const timeObjects = [];
 
 const hoverGroups = {};
 
-loader.load("/models/RoomPortfolio.glb", (glb) => {
+const introObjects = [];
+
+loader.load("/models/RoomPortfolio-v1.glb", (glb) => {
   glb.scene.traverse(child => {
     if (child.isMesh) {
       if (child.name.includes("Raycaster")) {
         raycasterObjects.push(child);
       }
       if (child.name.includes("Hover")) {
-        child.userData.initialScale = new THREE.Vector3().copy(child.scale);
+        child.userData.initialScale = child.scale.clone();
+        child.userData.initialRotation = child.rotation.clone();
+        if (child.name.includes("HoverI")) {
+          child.scale.set(0, 0, 0);
+          introObjects.push(child);
+        }
       }
       if (child.name.includes("GitHub") || child.name.includes("LinkedIn")) {
         const key = child.name.includes("GitHub") ? "GitHub" : "LinkedIn";
@@ -195,6 +334,10 @@ loader.load("/models/RoomPortfolio.glb", (glb) => {
       } else if (child.name == "Laptop_Screen") {
         child.material = new THREE.MeshBasicMaterial({
           map: videoTexture,
+        });
+      } else if (child.name.includes("Monitor")) {
+        child.material = new THREE.MeshBasicMaterial({
+          map: monitorTexture,
         });
       } else {
         Object.keys(textureMap).forEach(key => {
@@ -218,7 +361,26 @@ loader.load("/models/RoomPortfolio.glb", (glb) => {
     }
   });
   scene.add(glb.scene);
+  Object.values(loadedTextures.night).forEach(texture => {
+    renderer.initTexture(texture);
+  });
 });
+
+function playIntro() {
+  const tl = gsap.timeline({
+    defaults: {
+      duration: 2.5,
+      ease: "bounce.out",
+    }
+  });
+  introObjects.forEach((obj) => {
+    tl.to(obj.scale, {
+      x: 1.3,
+      y: 1.3,
+      z: 1.3,
+    }, 0);
+  });
+}
 
 const setTime = () => {
   const mode = time === 1 ? "day" : "night";
@@ -248,11 +410,12 @@ window.addEventListener("mousemove", (e) => {
   pointer.y = -(e.clientY / window.innerHeight) * 2 + 1;
 });
 
-let time = 1;
+// Clicks
 window.addEventListener("click", raycasterInteraction);
 
 window.addEventListener("touchstart",
   (e) => {
+    if (modalOpen) return;
     e.preventDefault();
     pointer.x = (e.touches[0].clientX / sizes.width) * 2 - 1;
     pointer.y = -(e.touches[0].clientY / sizes.height) * 2 + 1;
@@ -262,6 +425,7 @@ window.addEventListener("touchstart",
   });
 window.addEventListener("touchend",
   (e) => {
+    if (modalOpen) return;
     e.preventDefault();
     raycasterInteraction();
   }, { passive: false }
@@ -282,6 +446,10 @@ function raycasterInteraction() {
 
     if (object.name.includes("Monitor_Screen")) {
       showModal(modals.portfolio);
+      currentCameraPos.copy(camera.position);
+      currentTargetPos.copy(controls.target);
+      camera.position.set(-1.0409331409147755, 8.496826246174045, 3.7459625416626547);
+      controls.target.set(-2.344642085014835, 8.496826246174045, 3.7459625416626547);
     } else if (object.name.includes("Koopa")) {
       showModal(modals.about);
     } else if (object.name.includes("Basketball")) {
@@ -295,14 +463,49 @@ function raycasterInteraction() {
 
 function hoverAnimation(objects, hovering) {
   objects.forEach(object => {
-    gsap.killTweensOf(object.scale);
-    gsap.to(object.scale, {
-      x: object.userData.initialScale.x * (hovering ? 1.8 : 1),
-      y: object.userData.initialScale.y * (hovering ? 1.8 : 1),
-      z: object.userData.initialScale.z * (hovering ? 1.8 : 1),
-      duration: 1,
-      ease: "power1.out",
-    });
+    if (object.name.includes("Monitor")) {
+      gsap.to(object.material.color, {
+        r: hovering ? 1.7 : 1,
+        g: hovering ? 1.7 : 1,
+        b: hovering ? 1.7 : 1,
+        duration: 1,
+        ease: "power1.out",
+      });
+    } else {
+      gsap.killTweensOf(object.scale);
+      if (object.name.includes("HoverI")) {
+        gsap.to(object.scale, {
+          x: object.userData.initialScale.x * (hovering ? 1.8 : 1),
+          y: object.userData.initialScale.y * (hovering ? 1.8 : 1),
+          z: object.userData.initialScale.z * (hovering ? 1.8 : 1),
+          duration: 1,
+          ease: "power1.out",
+        });
+      } else if (object.name.includes("Chair")) {
+        gsap.killTweensOf(object.rotation);
+        gsap.to(object.rotation, {
+          y: hovering ? object.userData.initialRotation.y - Math.PI / 6 : object.userData.initialRotation.y,
+          duration: 2,
+          ease: "power1.out",
+        });
+      } else if (object.name.includes("Backpack")) {
+        gsap.to(object.scale, {
+          x: object.userData.initialScale.x * (hovering ? 1.2 : 1),
+          y: object.userData.initialScale.y * (hovering ? 1.2 : 1),
+          z: object.userData.initialScale.z * (hovering ? 1.2 : 1),
+          duration: 1,
+          ease: "power1.out",
+        });
+      } else {
+        gsap.to(object.scale, {
+          x: object.userData.initialScale.x * (hovering ? 1.5 : 1),
+          y: object.userData.initialScale.y * (hovering ? 1.5 : 1),
+          z: object.userData.initialScale.z * (hovering ? 1.5 : 1),
+          duration: 1,
+          ease: "power1.out",
+        });
+      }
+    }
   });
 }
 
@@ -310,58 +513,59 @@ const render = () => {
   controls.update();
 
   // console.log(camera.position);
-  // console.log("Blud");
+  // console.log("hi");
   // console.log(controls.target);
-  // console.log(time);
-  // console.log(currentIntersects);
-  // console.log(currentHovered);
+
   // Animate fans
   fans.forEach((fan) => {
     fan.rotation.z += 0.02;
   });
 
   // Raycaster
-  raycaster.setFromCamera(pointer, camera);
-
-  currentIntersects = raycaster.intersectObjects(raycasterObjects);
-
-  if (currentIntersects.length > 0) {
-    const currentIntersectObject = currentIntersects[0].object;
-
-    if (currentIntersectObject.name.includes("Hover")) {
-      const key = currentIntersectObject.name.includes("GitHub") ? "GitHub"
-      : currentIntersectObject.name.includes("LinkedIn") ? "LinkedIn"
-      : null;
-
-      const group = key ? hoverGroups[key] : [currentIntersectObject];
-
-      if (currentIntersectObject != currentHovered) {
-        if (currentHovered) {
-          const prevKey = currentHovered.name.includes("GitHub") ? "GitHub"
-          : currentHovered.name.includes("LinkedIn") ? "LinkedIn"
-          : null;
-          hoverAnimation(prevKey ? hoverGroups[prevKey] : [currentHovered], false);
+  if (!modalOpen) {
+    raycaster.setFromCamera(pointer, camera);
+  
+    currentIntersects = raycaster.intersectObjects(raycasterObjects);
+  
+    if (currentIntersects.length > 0) {
+      const currentIntersectObject = currentIntersects[0].object;
+  
+      if (currentIntersectObject.name.includes("Hover")) {
+        const key = currentIntersectObject.name.includes("GitHub") ? "GitHub"
+        : currentIntersectObject.name.includes("LinkedIn") ? "LinkedIn"
+        : null;
+  
+        const group = key ? hoverGroups[key] : [currentIntersectObject];
+  
+        if (currentIntersectObject != currentHovered) {
+          if (currentHovered) {
+            const prevKey = currentHovered.name.includes("GitHub") ? "GitHub"
+            : currentHovered.name.includes("LinkedIn") ? "LinkedIn"
+            : null;
+            hoverAnimation(prevKey ? hoverGroups[prevKey] : [currentHovered], false);
+          }
+          hoverAnimation(group, true);
+          currentHovered = currentIntersectObject;
         }
-        hoverAnimation(group, true);
-        currentHovered = currentIntersectObject;
       }
-    }
-
-    if (currentIntersectObject.name.includes("Raycaster")) {
-      document.body.style.cursor = "pointer";
+  
+      if (currentIntersectObject.name.includes("Monitor") || currentIntersectObject.name.includes("HoverI")) {
+        document.body.style.cursor = "pointer";
+      } else {
+        document.body.style.cursor = "default";
+      }
     } else {
       document.body.style.cursor = "default";
-    }
-  } else {
-    document.body.style.cursor = "default";
-    if (currentHovered) {
-      const prevKey = currentHovered.name.includes("GitHub") ? "GitHub"
-      : currentHovered.name.includes("LinkedIn") ? "LinkedIn"
-      : null;
-      hoverAnimation(prevKey ? hoverGroups[prevKey] : [currentHovered], false);
-      currentHovered = null;
+      if (currentHovered) {
+        const prevKey = currentHovered.name.includes("GitHub") ? "GitHub"
+        : currentHovered.name.includes("LinkedIn") ? "LinkedIn"
+        : null;
+        hoverAnimation(prevKey ? hoverGroups[prevKey] : [currentHovered], false);
+        currentHovered = null;
+      }
     }
   }
+
 
   renderer.render(scene, camera);
 
