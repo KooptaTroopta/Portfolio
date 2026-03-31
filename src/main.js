@@ -5,6 +5,18 @@ import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import gsap from "gsap"
 
+// Explain process like instruction
+// Change about me
+// Add better pictures/videos of projects
+//Picture of self
+
+// Add click me sign for intro
+//Laptop clickable? Interests
+//Blinds night mode
+//Animate mouse clicks
+//Spin trash lid
+//Add physics
+
 const canvas = document.querySelector("#experience-canvas");
 const sizes = {
   width: window.innerWidth,
@@ -47,6 +59,10 @@ const showModal = (modal) => {
     currentHovered = null;
   }
   currentIntersects = [];
+  if (modal == modals.portfolio) {
+    gsap.set(projectsGridView, { opacity: 1 });
+  }
+
   modal.style.display = "flex";
   gsap.set(modal, { opacity: 0 });
   gsap.to(modal, { opacity: 1, duration: 0.5, });
@@ -57,6 +73,12 @@ const hideModal = (modal) => {
   modalOpen = false;
   controls.enabled = true;
   if (modal == modals.portfolio) {
+    projectsDetailView.style.display = "none";
+    projectsGridView.style.display = "flex";
+    projectsBackBtn.style.display = "none";
+    document.querySelectorAll(".project-detail").forEach(d => d.classList.remove("is-active"));
+    projectsGridView.scrollTop = 0;
+
     camera.position.copy(currentCameraPos);
     controls.target.copy(currentTargetPos);
   }
@@ -69,18 +91,54 @@ const hideModal = (modal) => {
   });
 };
 
-document.querySelectorAll(".project-card").forEach((card) => {
-  card.addEventListener("click", (e) => {
-    if (e.target.closest(".project-github-link")) return;
+const projectsGridView  = document.getElementById("projects-grid-view");
+const projectsDetailView = document.getElementById("projects-detail-view");
+const projectsBackBtn   = document.getElementById("projects-back");
 
-    const isExpanded = card.classList.contains("is-expanded");
+const projectNames = {
+  "inferno":      "Inferno Tower",
+  "portfolio":    "Portfolio Website",
+  "social-graph": "Social Network Graph",
+  "truss":        "Truss Simulation",
+  "dispenser":    "Liquid Dispenser",
+  "temp-monitor": "Temperature Monitor",
+};
 
-    document.querySelectorAll(".project-card.is-expanded").forEach((open) => {
-      if (open !== card) open.classList.remove("is-expanded");
-    });
-    card.classList.toggle("is-expanded", !isExpanded);
+const openProjectDetail = (key) => {
+  gsap.to(projectsGridView, {
+    opacity: 0, duration: 0.2, onComplete: () => {
+      projectsGridView.style.display = "none";
+      projectsDetailView.style.display = "flex";
+
+      document.querySelectorAll(".project-detail").forEach(d => d.classList.remove("is-active"));
+      document.querySelector(`.project-detail[data-project="${key}"]`).classList.add("is-active");
+
+      projectsDetailView.scrollTop = 0;
+      projectsBackBtn.style.display = "flex";
+
+      gsap.fromTo(projectsDetailView, { opacity: 0 }, { opacity: 1, duration: 0.2 });
+    }
   });
+};
+
+const closeProjectDetail = () => {
+  gsap.to(projectsDetailView, {
+    opacity: 0, duration: 0.2, onComplete: () => {
+      projectsDetailView.style.display = "none";
+      projectsGridView.style.display = "flex";
+
+      projectsBackBtn.style.display = "none";
+
+      gsap.fromTo(projectsGridView, { opacity: 0 }, { opacity: 1, duration: 0.2 });
+    }
+  });
+};
+
+document.querySelectorAll(".project-card-grid").forEach(card => {
+  card.addEventListener("click", () => openProjectDetail(card.dataset.project));
 });
+
+projectsBackBtn.addEventListener("click", closeProjectDetail);
 
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(45, sizes.width / sizes.height, 0.1, 1000);
@@ -240,7 +298,7 @@ const glassMaterial = new THREE.MeshPhysicalMaterial({
 });
 
 const metalMaterial = new THREE.MeshPhysicalMaterial({
-  color: 0x0f0f0f,
+  color: 0x2f2f2f,
   transparent: false,
   opacity: 1,
   roughness: 0,
