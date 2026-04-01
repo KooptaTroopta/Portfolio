@@ -137,7 +137,7 @@
             </div>
             <div class="project-card-grid" data-project="truss">
               <div class="project-card-image">
-                <img src="/images/truss-simulation.webp" alt="Truss"/>
+                <img src="/images/interactive-truss.webp" alt="Truss"/>
               </div>
               <div class="project-card-footer">
                 <div class="project-card-header">
@@ -169,7 +169,7 @@
             </div>
             <div class="project-card-grid" data-project="temp-monitor">
               <div class="project-card-image">
-                <img src="/images/dispenser.webp" alt="Temp Monitor"/>
+                <img src="/images/temp-sensor.webp" alt="Temp Monitor"/>
               </div>
               <div class="project-card-footer">
                 <div class="project-card-header">
@@ -210,7 +210,12 @@
                 <h4 class="project-detail-section-title">Process</h4>
                 <p class="project-detail-text">The Inferno Tower was 3D modeled in Blender then 3D printed to house all components cleanly. 
                   We used an Arduino Nano to control the strobing lights and a PWM-driven water pump. A rotary encoder, mini OLED display, and push button were used as UI to intuitively control timing parameters like pulse frequency and pump power. 
-                Components were initially soldered to a perfboard, but we plan on using a custom PCB for a more finalized design.</p>
+                  Components were initially soldered to a perfboard, but we plan on using a custom PCB for a more finalized design.
+                </p>
+                <div class="project-detail-image">
+                  <img src="/images/inferno-paint.webp" alt="Inferno Painting"/>
+                  <img src="/images/inferno-concept.webp" alt="Inferno Concept"/>
+                </div>
               </div>
               <div class="project-detail-section">
                 <h4 class="project-detail-section-title">Results</h4>
@@ -316,29 +321,40 @@
             </div>
             <div class="project-detail-top">
               <div class="project-detail-image">
-                <img src="/images/truss-simulation.webp" alt="Truss Simulation"/>
+                <img src="/images/interactive-truss.webp" alt="Interactive Truss"/>
               </div>
               <div class="project-detail-image">
-                <img src="/images/interactive-truss.webp" alt="Interactive Truss"/>
+                <img src="/images/truss-simulation.webp" alt="Truss Simulation"/>
+                <img src="/images/truss-construction.webp" alt="Truss Construction"/>
               </div>
             </div>
             <div class="project-detail-body">
               <div class="project-detail-section">
                 <h4 class="project-detail-section-title">Overview</h4>
                 <p class="project-detail-text">
-                  A MATLAB program that analyzes and optimizes truss structures by computing internal forces, failure loads, and critical members — then physically constructs and validates the optimal design.
+                  EK301 Engineering Mechanics 1's final project was a truss design and simulation. The goal was to design a truss structure that maximizes load capacity while meeting material, geometric, and cost constraints. 
+                  Our primary design philosophy was to enhance a preliminary design that met all the design constraints and optimizing it the best we could. Optimizing meant redistributing forces within the truss, which required simulation and modeling of internal forces. 
+                  MATLAB was utilized to rapidly analyze different design iterations, allowing for us to create a strong, valid truss design.
                 </p>
               </div>
               <div class="project-detail-section">
                 <h4 class="project-detail-section-title">Process</h4>
                 <p class="project-detail-text">
-                  Static force analysis was implemented using the method of joints. A Monte Carlo simulation iterated over thousands of geometry variations, scoring each against load capacity and cost efficiency. A buckling-strength regression and constraint verification system were added to filter invalid configurations. A MATLAB GUI allowed interactive truss editing and real-time visualization of results.
+                  Our design process began with a preliminary truss that satisfied all constraints. 
+                  Using our MATLAB analysis program, we calculated internal forces, member buckling strengths, and the maximum load each design could support. 
+                  I created another MATLAB script to edit truss geometries in real-time, which further sped up design iterations, bypassing the manual computations of joint positions and verifications of member lengths. 
+                  After creating multiple designs significantly above the minimum requirement, I tried to optimize it even further. 
+                  I wrote another MATLAB script for a naive Monte Carlo simulation to shift each non-fixed joint position, and repeatedly ran the script until the max capacity peaked.
                 </p>
               </div>
               <div class="project-detail-section">
                 <h4 class="project-detail-section-title">Results</h4>
                 <p class="project-detail-text">
-                  The optimized design achieved 72.6% increased load above the minimum capacity — the strongest valid design in the class. An acrylic truss was constructed from the optimal model and physical testing closely matched calculated predictions.
+                  The final optimized truss design achieved a maximum load of 57.8 oz, with an uncertainty range from 53.1 to 59.8 oz. 
+                  Forces in all members were kept below their respective buckling limits at the target load. The total cost of the truss was underbudget at $188, resulting in a load-to-cost ratio of 0.307 oz per dollar. 
+                  This project demonstrated how MATLAB can be used as a powerful tool for structural analysis and optimization.  
+                  Our interactive editor further allowed us to visualize and manipulate truss configurations, streamlining the design and testing process.  
+                  The methodology and results highlight a practical approach to maximizing structural performance within given constraints.
                 </p>
               </div>
             </div>
@@ -361,19 +377,27 @@
               <div class="project-detail-section">
                 <h4 class="project-detail-section-title">Overview</h4>
                 <p class="project-detail-text">
-                  A contactless automatic soap dispenser designed to meet a real client brief. Led a team of 4 through the full product design lifecycle from requirements gathering to physical delivery.
+                  A contact-free automatic liquid dispenser designed for home, medical, and public settings to promote hygiene and convenience. 
+                  The device uses an infrared sensor to detect user presence and triggers a micro water pump controlled by an Arduino to dispense precise amounts of liquid. 
+                  An OLED and 16x2 LCD display provide real-time feedback on system status and remaining liquid, making the device intuitive and adaptable.
                 </p>
               </div>
               <div class="project-detail-section">
                 <h4 class="project-detail-section-title">Process</h4>
                 <p class="project-detail-text">
-                  Requirements were captured through client interviews and translated into engineering specifications. The enclosure was designed for compact integration of an Arduino, IR sensor, peristaltic pump, and OLED display. Firmware was developed to handle sensor debouncing, pump timing for consistent 25mL dispensing, and an animated water level UI. Multiple prototypes were iterated on before the final enclosure was printed.
+                  The enclosure was designed in CAD and fabricated using 3D printing and acrylic panels to securely house all electronics and the liquid reservoir. 
+                  A 5V IR distance sensor detects objects within a 3-11 cm range, and the Arduino triggers a 12V Uxcell micro water pump via a MOSFET to dispense liquid. 
+                  Firmware handles timing, pump control, and display updates, while a buck converter ensures safe power distribution to all components. 
+                  Wiring and soldering were carefully completed to ensure reliability and compact packaging.
                 </p>
               </div>
               <div class="project-detail-section">
                 <h4 class="project-detail-section-title">Results</h4>
                 <p class="project-detail-text">
-                  Delivered a working product to the client with 95% detection accuracy and consistent dispensing volume. The OLED UI provided clear real-time feedback and the compact enclosure met all client size requirements.
+                  The prototype dispenses 24 mL of liquid in approximately 1.62 seconds with over 95% reliability and can handle both water and 1:1 water-soap mixtures. 
+                  The device is compact (6 x 7.3 x 13 in), lightweight (1.24 kg), and easy to refill, clean, and operate. 
+                  Testing confirmed accurate dispensing, consistent sensor detection, and effective hygiene protection, all while remaining under budget at $106.30. 
+                  This project reinforced skills in embedded systems, sensor integration, electronics fabrication, and user-centered design.
                 </p>
               </div>
             </div>
@@ -386,26 +410,37 @@
             </div>
             <div class="project-detail-top">
               <div class="project-detail-image">
-                <img src="/images/dispenser.webp" alt="Temp Monitor"/>
+                <img src="/images/temp-sensor.webp" alt="Temp Monitor"/>
+              </div>
+              <div class="project-detail-image">
+                <img src="/images/temp-circuit.webp" alt="Temp Circuit"/>
+                <img src="/images/temp-housing-drawing.webp" alt="Temp Housing Drawing"/>
               </div>
             </div>
             <div class="project-detail-body">
               <div class="project-detail-section">
                 <h4 class="project-detail-section-title">Overview</h4>
                 <p class="project-detail-text">
-                  An introduction to the full embedded and mechanical engineering workflow — from firmware to physical fabrication. A standalone Arduino device that monitors temperature and alerts the user when readings fall outside a configurable range.
+                  First engineering project at BU for EK131 Hands On Engineering. 
+                  An Arduino-based temperature monitoring system designed to measure ambient temperature and alert the user when readings fall outside a configurable range. 
+                  The device combines embedded software, circuits, and mechanical design in a device. Provides both a visual and audible notification in a compact, portable enclosure.
                 </p>
               </div>
               <div class="project-detail-section">
                 <h4 class="project-detail-section-title">Process</h4>
                 <p class="project-detail-text">
-                  The enclosure was modeled in Onshape and fabricated via FDM 3D printing. Firmware was written in Arduino C to read temperature sensors, display live readings on an LCD, and trigger visual and audible alerts based on user-set thresholds. Components were hand soldered onto a PCB for a clean final build.
+                  The enclosure was designed in Onshape and fabricated via FDM 3D printing to securely house all components, including the Arduino Uno, TMP36 sensor, LEDs, buzzer, and a 9V battery. 
+                  Firmware written in Arduino C reads the analog output from the temperature sensor, converts it to Celsius and Fahrenheit, and displays the readings on an LCD. 
+                  If the temperature exceeds user-set thresholds, the code triggers a red LED and buzzer for alerts. 
+                  Internal wiring was assembled and soldered for reliable connections, with power supplied by a 9V battery or external USB connection.
                 </p>
               </div>
               <div class="project-detail-section">
                 <h4 class="project-detail-section-title">Results</h4>
                 <p class="project-detail-text">
-                  A fully functional temperature monitor with reliable alerting and a clean enclosure. This project established foundational skills in embedded systems, CAD modeling, and electronics fabrication that carried through all subsequent projects.
+                  The completed system successfully measures temperature, displays real-time readings, and alerts the user when values fall outside the set range. 
+                  The device operates reliably for over eight hours on battery power, with the threshold easily adjustable in the firmware. 
+                  This project reinforced practical skills in embedded systems programming, electronics assembly, and CAD-based fabrication, providing a strong foundation for future hardware and mechatronics projects.
                 </p>
               </div>
             </div>
@@ -416,13 +451,13 @@
 
       <div class="about modal">
         <div class="modal-header">
-          <h1 class="modal-title">About</h1>
+          <h1 class="modal-title">About Me</h1>
           <button class="modal-exit-button">Close</button>
         </div>
         <div class="modal-body" class="modal-small">
           <div class="modal-text">
-            Hi, I'm Jacob - a Computer Engineering student at Boston University from San Francisco. 
-            I'm interested in building cool projects, solving problems, and using skills I've learned to real-life applications. 
+            Hi, I'm Jacob, a Computer Engineering student at Boston University from San Francisco. 
+            I'm interested in building projects that combine design and programming, solving problems, and applying the skills I've learned to practical applications.
           </div>
           <div class="modal-text">
             Currently, I'm leaning towards a career in a technical field like software engineering, but I'm still exploring different areas to see what I enjoy most. 
@@ -430,8 +465,8 @@
           </div>
           <div class="modal-text">
             Outside of school, I spend a lot of my free time playing pickup basketball, which eventually got me into weightlifting as I work on trying to dunk. 
-            I also enjoy tutoring and helping others understand technical concepts, and it's helped me get better at explaining ideas clearly. 
-            Lately, I've been getting into 3D modeling and rendering as a creative outlet, especially since I used to draw growing up.
+            I also enjoy tutoring and helping others understand technical concepts, and it's helped me get better at explaining ideas while improving my own understanding. 
+            Lately, I've been getting into 3D modeling to design projects and as a creative outlet.
           </div>
           </div>
         </div>

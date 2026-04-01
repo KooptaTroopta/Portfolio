@@ -543,15 +543,21 @@
 .project-detail-image {
   display: flex;
   gap: 8px;
+  border-radius: 4px;
   overflow: hidden;
 
   img {
     flex: 1;
     min-width: 0;
     width: 0;
-    height: auto;
-    object-fit: cover;
     display: block;
+    object-fit: cover;
+    height: auto;
+  }
+
+  img + img,
+  img:not(:only-child) {
+    max-height: 500px;
   }
 }
 

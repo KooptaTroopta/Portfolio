@@ -311,9 +311,10 @@ const metalMaterial = new THREE.MeshPhysicalMaterial({
 const projectImages = [
   "/images/Inferno.webp",
   "/images/social-graph.webp",
-  "/images/truss-simulation.webp",
+  "/images/interactive-truss.webp",
   "/images/dispenser.webp",
   "/images/portfolio-day.webp",
+  "/images/temp-sensor.webp"
 ];
 
 const randomSrc = projectImages[Math.floor(Math.random() * projectImages.length)];
