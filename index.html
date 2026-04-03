@@ -213,8 +213,11 @@
                   Components were initially soldered to a perfboard, but we plan on using a custom PCB for a more finalized design.
                 </p>
                 <div class="project-detail-image">
-                  <img src="/images/inferno-paint.webp" alt="Inferno Painting"/>
                   <img src="/images/inferno-concept.webp" alt="Inferno Concept"/>
+                </div>
+                <div class="project-detail-image">
+                  <img src="/images/inferno-paint.webp" alt="Inferno Painting"/>
+                  <img src="/images/inferno-assembly.webp" alt="Inferno Assembly"/>
                 </div>
               </div>
               <div class="project-detail-section">
@@ -229,7 +232,7 @@
           <div class="project-detail" data-project="portfolio">
             <div class="project-detail-header">
               <h3 class="project-detail-title">Portfolio Website</h3>
-              <span class="project-detail-date">Jan - Mar 2026</span>
+              <span class="project-detail-date">Jan - Apr 2026</span>
             </div>
             <div class="project-detail-top">
               <div class="project-detail-image">
@@ -289,16 +292,18 @@
                 <h4 class="project-detail-section-title">Overview</h4>
                 <p class="project-detail-text">
                   C++ desktop application built for EC327 (Intro to Software Engineering) that simulates and visualizes a social network of students. 
-                  Users can load or generate datasets, explore social adjacency, and find minimum “degrees of separation” between any two people. 
+                  Users can load or generate datasets, explore social adjacency, and find minimum degrees of separation between any two people. 
                   The project was developed by a team of five using Agile practices, with a Qt-based GUI layered on top of a modular, dependency-injected backend.
                 </p>
               </div>
               <div class="project-detail-section">
                 <h4 class="project-detail-section-title">Process</h4>
                 <p class="project-detail-text">
+                  Project workload was split up into small tasks and organized in a Kanban board. 
+                  Team members assigned themselves to tasks and helped others when finished.
                   The core simulation in SocialGraph.cpp treats each Person as a node and builds directed edges based on a configurable similarity score across attributes like region, graduation year, favorite colors, and engineering focus. 
                   Users adjust category weights and a top-N neighbors setting to control which edges are kept. 
-                  Multiple PersonReader implementations (CSV, HTTP+JSON, and random generation) are wired in via Inversion of Control and Dependency Injection. 
+                  Multiple PersonReader implementations (CSV, HTTP+JSON, and random generation) are wired in via concepts learned in class (Inversion of Control and Dependency Injection). 
                   A Qt interface connects this logic to a graphical view, letting users load, edit, persist, and explore datasets while running BFS-based pathfinding and traversal under the hood.
                 </p>
               </div>
@@ -351,7 +356,8 @@
                 <h4 class="project-detail-section-title">Results</h4>
                 <p class="project-detail-text">
                   The final optimized truss design achieved a maximum load of 57.8 oz, with an uncertainty range from 53.1 to 59.8 oz. 
-                  Forces in all members were kept below their respective buckling limits at the target load. The total cost of the truss was underbudget at $188, resulting in a load-to-cost ratio of 0.307 oz per dollar. 
+                  Forces in all members were kept below their respective buckling limits at the target load. 
+                  The total cost of the truss was underbudget at $188, resulting in a load-to-cost ratio of 0.307 oz per dollar. 
                   This project demonstrated how MATLAB can be used as a powerful tool for structural analysis and optimization.  
                   Our interactive editor further allowed us to visualize and manipulate truss configurations, streamlining the design and testing process.  
                   The methodology and results highlight a practical approach to maximizing structural performance within given constraints.
@@ -377,9 +383,9 @@
               <div class="project-detail-section">
                 <h4 class="project-detail-section-title">Overview</h4>
                 <p class="project-detail-text">
-                  A contact-free automatic liquid dispenser designed for home, medical, and public settings to promote hygiene and convenience. 
+                  EK210 Hands on Engineering Final Project: a contact-free automatic liquid dispenser designed for home, medical, and public settings to promote hygiene and convenience. 
                   The device uses an infrared sensor to detect user presence and triggers a micro water pump controlled by an Arduino to dispense precise amounts of liquid. 
-                  An OLED and 16x2 LCD display provide real-time feedback on system status and remaining liquid, making the device intuitive and adaptable.
+                  An OLED and 16x2 LCD display provide real-time feedback on system status and remaining liquid, making the device intuitive and user-friendly.
                 </p>
               </div>
               <div class="project-detail-section">
@@ -388,16 +394,16 @@
                   The enclosure was designed in CAD and fabricated using 3D printing and acrylic panels to securely house all electronics and the liquid reservoir. 
                   A 5V IR distance sensor detects objects within a 3-11 cm range, and the Arduino triggers a 12V Uxcell micro water pump via a MOSFET to dispense liquid. 
                   Firmware handles timing, pump control, and display updates, while a buck converter ensures safe power distribution to all components. 
-                  Wiring and soldering were carefully completed to ensure reliability and compact packaging.
+                  Componenets were carefully wired and soldered to ensure reliability and compact packaging.
                 </p>
               </div>
               <div class="project-detail-section">
                 <h4 class="project-detail-section-title">Results</h4>
                 <p class="project-detail-text">
-                  The prototype dispenses 24 mL of liquid in approximately 1.62 seconds with over 95% reliability and can handle both water and 1:1 water-soap mixtures. 
+                  The prototype dispenses liquid in approximately 1.62 seconds with over 95% reliability and can handle different viscoscities (water, soap mixtures) allowing for adaptable use. 
                   The device is compact (6 x 7.3 x 13 in), lightweight (1.24 kg), and easy to refill, clean, and operate. 
-                  Testing confirmed accurate dispensing, consistent sensor detection, and effective hygiene protection, all while remaining under budget at $106.30. 
-                  This project reinforced skills in embedded systems, sensor integration, electronics fabrication, and user-centered design.
+                  Testing confirmed accurate dispensing, consistent sensor detection, and under budget at $106.30, achieving our client's goals. 
+                  This project reinforced skills in embedded systems, sensor integration, circuits fabrication, and user-centered design.
                 </p>
               </div>
             </div>

@@ -5,17 +5,32 @@ import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import gsap from "gsap"
 
-// Explain process like instruction
-// Change about me
-// Add better pictures/videos of projects
-//Picture of self
-
 // Add click me sign for intro
 //Laptop clickable? Interests
 //Blinds night mode
 //Animate mouse clicks
 //Spin trash lid
 //Add physics
+
+// Sources
+const laptopSources = [
+  { type: "video", src: "/textures/video/Laptop.mp4" },
+  { type: "image", src: "/textures/image/snow-day.webp" },
+  { type: "image", src: "/textures/image/friendsgiving.webp" },
+  { type: "image", src: "/textures/image/nyc-trip.webp" },
+  { type: "image", src: "/textures/image/track-senior-night.webp" },
+  { type: "image", src: "/textures/image/very-professional.webp" },
+  { type: "image", src: "/textures/image/young.webp" },
+];
+
+const projectImages = [
+  "/images/Inferno.webp",
+  "/images/social-graph.webp",
+  "/images/interactive-truss.webp",
+  "/images/dispenser.webp",
+  "/images/portfolio-day.webp",
+  "/images/temp-sensor.webp"
+];
 
 const canvas = document.querySelector("#experience-canvas");
 const sizes = {
@@ -94,15 +109,6 @@ const hideModal = (modal) => {
 const projectsGridView  = document.getElementById("projects-grid-view");
 const projectsDetailView = document.getElementById("projects-detail-view");
 const projectsBackBtn   = document.getElementById("projects-back");
-
-const projectNames = {
-  "inferno":      "Inferno Tower",
-  "portfolio":    "Portfolio Website",
-  "social-graph": "Social Network Graph",
-  "truss":        "Truss Simulation",
-  "dispenser":    "Liquid Dispenser",
-  "temp-monitor": "Temperature Monitor",
-};
 
 const openProjectDetail = (key) => {
   gsap.to(projectsGridView, {
@@ -308,15 +314,7 @@ const metalMaterial = new THREE.MeshPhysicalMaterial({
   envMap: environmentMap,
 });
 
-const projectImages = [
-  "/images/Inferno.webp",
-  "/images/social-graph.webp",
-  "/images/interactive-truss.webp",
-  "/images/dispenser.webp",
-  "/images/portfolio-day.webp",
-  "/images/temp-sensor.webp"
-];
-
+//Monitor Texture
 const randomSrc = projectImages[Math.floor(Math.random() * projectImages.length)];
 
 const monitorImage = new Image();
@@ -335,21 +333,12 @@ monitorImage.onload = () => {
   monitorTexture.needsUpdate = true;
 };
 
-const videoElement = document.createElement("video");
-videoElement.src = "/textures/video/Laptop1.mp4";
-videoElement.loop = true;
-videoElement.muted = true;
-videoElement.autoplay = true;
-videoElement.play();
+let laptopMesh = null;
+let laptopIndex = 0;
 
-const videoTexture = new THREE.VideoTexture(videoElement);
-videoTexture.colorSpace = THREE.SRGBColorSpace;
-videoTexture.flipY = false;
-videoTexture.wrapS = THREE.ClampToEdgeWrapping;
-videoTexture.wrapT = THREE.ClampToEdgeWrapping;
-
-videoTexture.repeat.set(1.3, 1.6);
-videoTexture.offset.set(-0.0, -0.5);
+const SCREEN_ASPECT = 1.5975622757073995;
+let CANVAS_W = 1024;
+let CANVAS_H = Math.round(CANVAS_W / SCREEN_ASPECT);
 
 const fans = [];
 
@@ -390,9 +379,11 @@ loader.load("/models/RoomPortfolio-v1.glb", (glb) => {
         child.material = glassMaterial;
       } else if (child.name.includes("Metal")) {
         child.material = metalMaterial;
-      } else if (child.name == "Laptop_Screen") {
-        child.material = new THREE.MeshBasicMaterial({
-          map: videoTexture,
+      } else if (child.name.includes("Laptop_Screen")) {
+        laptopMesh = child;
+        fixLaptopUVs(laptopMesh);
+        laptopMesh.material = new THREE.MeshBasicMaterial({
+          map: videoTexture
         });
       } else if (child.name.includes("Monitor")) {
         child.material = new THREE.MeshBasicMaterial({
@@ -448,6 +439,137 @@ const setTime = () => {
     mesh.material.needsUpdate = true;
   });
 };
+
+// Laptop texture
+const videoElement = document.createElement("video");
+videoElement.src = "/textures/video/Laptop1.mp4";
+videoElement.loop = true;
+videoElement.muted = true;
+videoElement.autoplay = true;
+videoElement.play();
+
+const videoTexture = new THREE.VideoTexture(videoElement);
+videoTexture.colorSpace = THREE.SRGBColorSpace;
+videoTexture.flipY = false;
+videoTexture.wrapS = THREE.ClampToEdgeWrapping;
+videoTexture.wrapT = THREE.ClampToEdgeWrapping;
+
+videoTexture.repeat.set(1, 1);
+
+function fixLaptopUVs(mesh) {
+  const geom = mesh.geometry;
+  if (!geom.attributes.uv) return;
+
+  const uv = geom.attributes.uv;
+
+  let minU = Infinity, maxU = -Infinity;
+  let minV = Infinity, maxV = -Infinity;
+
+  for (let i = 0; i < uv.count; i++) {
+    const u = uv.getX(i);
+    const v = uv.getY(i);
+
+    minU = Math.min(minU, u);
+    maxU = Math.max(maxU, u);
+    minV = Math.min(minV, v);
+    maxV = Math.max(maxV, v);
+  }
+
+  const rangeU = maxU - minU;
+  const rangeV = maxV - minV;
+
+  for (let i = 0; i < uv.count; i++) {
+    let u = uv.getX(i);
+    let v = uv.getY(i);
+
+    u = (u - minU) / rangeU;
+    v = (v - minV) / rangeV;
+
+    uv.setXY(i, u, v);
+  }
+
+  uv.needsUpdate = true;
+}
+
+function createFittedTexture(img) {
+  const canvas = document.createElement("canvas");
+  canvas.width = CANVAS_W;
+  canvas.height = CANVAS_H;
+
+  const ctx = canvas.getContext("2d");
+
+  ctx.fillStyle = "#000";
+  ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
+
+  const imgAspect = img.naturalWidth / img.naturalHeight;
+  const screenAspect = CANVAS_W / CANVAS_H;
+
+  let drawW, drawH;
+
+  if (imgAspect > screenAspect) {
+    drawW = CANVAS_W;
+    drawH = CANVAS_W / imgAspect;
+  } else {
+    drawH = CANVAS_H;
+    drawW = CANVAS_H * imgAspect;
+  }
+
+  const drawX = (CANVAS_W - drawW) / 2;
+  const drawY = (CANVAS_H - drawH) / 2;
+
+  ctx.drawImage(img, drawX, drawY, drawW, drawH);
+
+  const tex = new THREE.CanvasTexture(canvas);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  tex.flipY = false;
+
+  return tex;
+}
+
+function swapLaptopTexture(source) {
+  if (!laptopMesh) return;
+
+  if (source.type === "video") {
+    videoElement.play();
+
+    laptopMesh.material.map = videoTexture;
+    laptopMesh.material.needsUpdate = true;
+
+  } else {
+    videoElement.pause();
+
+    const img = new Image();
+    img.src = source.src;
+
+    img.onload = () => {
+      const tex = createFittedTexture(img);
+
+      laptopMesh.material.map = tex;
+      laptopMesh.material.needsUpdate = true;
+    };
+  }
+}
+
+const cycleLaptop = () => {
+  if (!laptopMesh) return;
+
+  laptopIndex = (laptopIndex + 1) % laptopSources.length;
+
+  gsap.to(laptopMesh.material.color, {
+    r: 0, g: 0, b: 0,
+    duration: 0.3,
+    onComplete: () => {
+      swapLaptopTexture(laptopSources[laptopIndex]);
+
+      gsap.to(laptopMesh.material.color, {
+        r: 1, g: 1, b: 1,
+        duration: 0.3
+      });
+    }
+  });
+};
+
+setInterval(cycleLaptop, 10000);
 
 // Event Listeners
 window.addEventListener("resize", () => {
