@@ -527,39 +527,38 @@ function createFittedTexture(img) {
 }
 
 function swapLaptopTexture(source) {
-  if (!laptopMesh) return;
-
-  if (source.type === "video") {
-    videoElement.play();
-
-    laptopMesh.material.map = videoTexture;
-    laptopMesh.material.needsUpdate = true;
-
-  } else {
-    videoElement.pause();
-
-    const img = new Image();
-    img.src = source.src;
-
-    img.onload = () => {
-      const tex = createFittedTexture(img);
-
-      laptopMesh.material.map = tex;
+  return new Promise((resolve) => {
+    if (!laptopMesh) return resolve();
+    if (source.type === "video") {
+      videoElement.play();
+      laptopMesh.material.map = videoTexture;
       laptopMesh.material.needsUpdate = true;
-    };
-  }
+      resolve();
+    } else {
+      videoElement.pause();
+      const img = new Image();
+      img.src = source.src;
+      img.onload = () => {
+        const tex = createFittedTexture(img);
+
+        laptopMesh.material.map = tex;
+        laptopMesh.material.needsUpdate = true;
+
+        resolve();
+      };
+    }
+  });
 }
 
 const cycleLaptop = () => {
   if (!laptopMesh) return;
-
   laptopIndex = (laptopIndex + 1) % laptopSources.length;
 
   gsap.to(laptopMesh.material.color, {
     r: 0, g: 0, b: 0,
     duration: 0.3,
-    onComplete: () => {
-      swapLaptopTexture(laptopSources[laptopIndex]);
+    onComplete: async () => {
+      await swapLaptopTexture(laptopSources[laptopIndex]);
 
       gsap.to(laptopMesh.material.color, {
         r: 1, g: 1, b: 1,
